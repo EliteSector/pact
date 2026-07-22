@@ -67,8 +67,9 @@ export function go(screen, extra) {
 // ---------- auth ----------
 
 export async function signUp(email, password) {
-  const { error } = await supabase.auth.signUp({ email, password });
+  const { data, error } = await supabase.auth.signUp({ email, password });
   if (error) throw error;
+  return { hasSession: !!data.session };
 }
 export async function signIn(email, password) {
   const { error } = await supabase.auth.signInWithPassword({ email, password });

@@ -19,27 +19,30 @@ registerScreens({
 
 registerServiceWorker().catch(() => {});
 
+const PRE_APP_SCREENS = new Set(['loading', 'splash', 'auth', 'emailAuth', 'forgotPassword', 'forgotSent', 'confirmEmailSent']);
+
+async function enterApp(session) {
+  setState({ screen: 'loading', session });
+  const ok = await loadAll().then(() => true).catch(() => false);
+  if (!ok) { go('networkError'); return; }
+  const st = getState();
+  if (!st.profile?.name) { go('onbProfile'); return; }
+  const hashDetail = location.hash.match(/^#\/detail\/([\w-]+)/);
+  if (hashDetail && st.contracts.some(c => c.id === hashDetail[1])) {
+    go('detail', { activeContractId: hashDetail[1] });
+  } else if (location.hash.startsWith('#/notifCenter')) {
+    go('notifCenter');
+  } else {
+    go('dashboard');
+  }
+}
+
 async function boot() {
   setState({ screen: 'loading' });
   try {
     const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      setState({ session });
-      const ok = await loadAll().then(() => true).catch(() => false);
-      if (!ok) { go('networkError'); return; }
-      const st = getState();
-      if (!st.profile?.name) { go('onbProfile'); return; }
-      const hashDetail = location.hash.match(/^#\/detail\/([\w-]+)/);
-      if (hashDetail && st.contracts.some(c => c.id === hashDetail[1])) {
-        go('detail', { activeContractId: hashDetail[1] });
-      } else if (location.hash.startsWith('#/notifCenter')) {
-        go('notifCenter');
-      } else {
-        go('dashboard');
-      }
-    } else {
-      go('splash');
-    }
+    if (session) await enterApp(session);
+    else go('splash');
   } catch (e) {
     console.error(e);
     go('networkError');
@@ -48,7 +51,12 @@ async function boot() {
 
 supabase.auth.onAuthStateChange((event, session) => {
   setState({ session });
-  if (event === 'SIGNED_OUT') go('splash');
+  if (event === 'SIGNED_OUT') { go('splash'); return; }
+  // Picks up the session created when a user taps the email confirmation link
+  // and lands back on the app (detectSessionInUrl handles the token exchange).
+  if (session && PRE_APP_SCREENS.has(getState().screen)) {
+    enterApp(session).catch(() => go('networkError'));
+  }
 });
 
 startRouter();

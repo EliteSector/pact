@@ -11,13 +11,15 @@ Installable iOS PWA — accountability contracts with real stakes, synced live b
 ## One-time setup
 
 ### 1. Create the Supabase project
-Create a project at supabase.com/dashboard. Then, in **Authentication → Providers → Email**, turn **off** "Confirm email" (so `signUp` immediately returns a session — needed for the onboarding flow to continue right after sign-up during testing).
+Create a project at supabase.com/dashboard. Whether or not "Confirm email" is on doesn't matter — the app handles both: if signup returns a session immediately it goes straight to onboarding, otherwise it shows a "check your email" screen and picks up automatically once the confirmation link is tapped (`detectSessionInUrl` + an auth-state listener).
 
 Grab from **Settings → API**: the **Project URL** and **anon public key**. Put them in `js/config.js`:
 ```js
 export const SUPABASE_URL = 'https://xxxx.supabase.co';
 export const SUPABASE_ANON_KEY = 'xxxx';
 ```
+
+Also set **Authentication → URL Configuration → Site URL** to your GitHub Pages URL (`https://elitesector.github.io/pact/`) once you know it — that's where confirmation/reset-password email links redirect back to. Add it under "Redirect URLs" too if there's a separate allow-list field.
 
 ### 2. Generate VAPID keys (for Web Push)
 ```bash

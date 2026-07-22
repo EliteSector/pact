@@ -81,6 +81,16 @@ function forgotPassword(state) {
   </div>`;
 }
 
+function confirmEmailSent(state) {
+  return `
+  <div class="center-screen">
+    <div class="icon-tile" style="background:var(--blue)"><img src="assets/pk/icons/shield-check.png" alt="" style="width:44px;height:44px"></div>
+    <div style="font-family:var(--font-display);font-weight:800;font-size:24px;color:var(--ink)">Confirm your email.</div>
+    <div style="font-family:var(--font-body);font-size:15px;color:var(--text-muted);max-width:280px">We sent a confirmation link to ${esc(state.ui.pendingConfirmEmail || 'your email')}. Tap it, then come back here — this screen will move on by itself.</div>
+    <button class="btn btn-secondary btn-lg btn-block" data-act="go-email">Back to Sign In</button>
+  </div>`;
+}
+
 function forgotSent(state) {
   return `
   <div class="center-screen">
@@ -113,8 +123,13 @@ export const screens = {
       if (Object.keys(errors).length) { setUi(ui => ({ emailAuth: { ...ui.emailAuth, errors } })); return; }
       setUi({ busy: true });
       try {
-        if (ea.mode === 'signup') { await signUp(ea.email, ea.password); go('onbProfile'); }
-        else { await signIn(ea.email, ea.password); }
+        if (ea.mode === 'signup') {
+          const { hasSession } = await signUp(ea.email, ea.password);
+          if (hasSession) go('onbProfile');
+          else { setUi({ pendingConfirmEmail: ea.email }); go('confirmEmailSent'); }
+        } else {
+          await signIn(ea.email, ea.password);
+        }
       } catch (e) {
         setUi(ui => ({ emailAuth: { ...ui.emailAuth, errors: { email: e.message } } }));
       } finally { setUi({ busy: false }); }
@@ -130,4 +145,5 @@ export const screens = {
     },
   }) },
   forgotSent: { render: forgotSent, mount: (root) => bindActions(root, { 'go-email': () => go('emailAuth') }) },
+  confirmEmailSent: { render: confirmEmailSent, mount: (root) => bindActions(root, { 'go-email': () => go('emailAuth') }) },
 };
