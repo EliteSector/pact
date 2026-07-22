@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+
+:root{
+  /* colors */
+  --ink:#171412;
+  --cream:#f8f5f0;
+  --cream-card:#fffdf9;
+  --coral:#fe7e59;
+  --coral-hover:#ff9576;
+  --coral-press:#e6603c;
+  --gold:#fab714;
+  --gold-hover:#ffc94a;
+  --green:#97f99d;
+  --green-hover:#b3fdb8;
+  --red:#fd4603;
+  --red-hover:#ff6a30;
+  --purple:#32026a;
+  --purple-hover:#48108a;
+  --blue:#7ba5d7;
+  --blue-hover:#9bbde3;
+  --white:#ffffff;
+  --text-primary:var(--ink);
+  --text-inverse:var(--cream);
+  --text-muted:#5c5650;
+  --surface-page:var(--cream);
+  --surface-card:var(--cream-card);
+  --surface-primary:var(--coral);
+  --surface-primary-hover:var(--coral-hover);
+  --surface-primary-press:var(--coral-press);
+  --status-active:var(--gold);
+  --status-kept:var(--green);
+  --status-breached:var(--red);
+  --status-favor:var(--purple);
+  --status-trust:var(--blue);
+  --border-default:var(--ink);
+
+  /* typography */
+  --font-display:'Plus Jakarta Sans',system-ui,sans-serif;
+  --font-body:'Plus Jakarta Sans',system-ui,sans-serif;
+  --font-mono:'Space Mono',monospace;
+  --fw-medium:500;
+  --fw-semibold:600;
+  --fw-bold:700;
+  --fw-black:800;
+  --fs-display-xl:56px;
+  --fs-display-lg:40px;
+  --fs-h1:32px;
+  --fs-h2:24px;
+  --fs-h3:20px;
+  --fs-body-lg:18px;
+  --fs-body:16px;
+  --fs-body-sm:14px;
+  --fs-caption:12px;
+  --lh-tight:1.1;
+  --lh-snug:1.25;
+  --lh-normal:1.45;
+
+  /* spacing */
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --space-5:20px;
+  --space-6:24px;
+  --space-8:32px;
+  --space-10:40px;
+  --space-12:48px;
+  --space-16:64px;
+  --space-20:80px;
+
+  /* effects */
+  --radius-sm:10px;
+  --radius-md:16px;
+  --radius-lg:24px;
+  --radius-pill:999px;
+  --border-w:3px;
+  --border-w-thick:4px;
+  --shadow-offset:5px;
+  --shadow-hard:5px 5px 0 0 var(--ink);
+  --shadow-hard-sm:3px 3px 0 0 var(--ink);
+  --shadow-hard-lg:7px 7px 0 0 var(--ink);
+  --shadow-hard-press:2px 2px 0 0 var(--ink);
+  --ease-snap:cubic-bezier(.34,1.56,.64,1);
+  --dur-fast:100ms;
+  --dur-base:150ms;
+
+  /* safe area */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
