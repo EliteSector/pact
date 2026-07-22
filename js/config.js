@@ -1,4 +1,3 @@
-// Filled in once the Supabase project exists — see README.md "Deploy" section.
-export const SUPABASE_URL = 'https://YOUR-PROJECT-REF.supabase.co';
-export const SUPABASE_ANON_KEY = 'YOUR-ANON-PUBLIC-KEY';
-export const VAPID_PUBLIC_KEY = 'YOUR-VAPID-PUBLIC-KEY';
+export const SUPABASE_URL = 'https://ebpcewmcfdwomfftyogp.supabase.co';
+export const SUPABASE_ANON_KEY = 'sb_publishable_ILIMBjtzXzfh-1kWhKdJcQ_lO311qok';
+export const VAPID_PUBLIC_KEY = 'BCdnX3QQ9qCOEfJEViNpbYvg_mSRnQLRAKQVMd7W8LGXjndF7DIVWgfQnJ4FvqatcFJixRMRaH0EvQQd3ymKuuc';
