@@ -1,4 +1,5 @@
 import { supabase } from './supabase-client.js';
+import { DIFF_STAKES } from './util.js';
 
 const listeners = new Set();
 
@@ -285,7 +286,7 @@ export async function createContract(input) {
     proposer_id: me(), partner_id: input.partnerId, title: input.title, category: input.categoryId,
     description: input.description, deadline: input.deadline || null, status: 'proposed',
     progress_value: 0, progress_max: input.progressMax || 1, progress_label: input.progressLabel || '',
-    penalty_favor_text: input.penaltyText, points: input.points,
+    penalty_favor_text: input.penaltyText, penalty_vault_item_id: input.penaltyVaultItemId || null, points: input.points,
   }).select().single();
   if (error) throw error;
   await logHistory(data.id, 'proposed', { title: input.title, deadline: input.deadline, points: input.points });
@@ -293,25 +294,57 @@ export async function createContract(input) {
   return data;
 }
 
-export async function updateContractEdit(contractId, newTitle) {
+// input: { title, deadline (ISO string or ''), penaltyVaultItemId } — the *proposed* new values.
+// Builds a real per-field diff (contract.pendingEdit = {changes,title,deadline,penaltyId}) so
+// Review Change Request / the pending-edit banner can show old->new per field, not just a title.
+export async function updateContractEdit(contractId, input) {
+  const c = state.contracts.find(x => x.id === contractId);
+  const changes = [];
+  if (input.title && input.title !== c.title) {
+    changes.push({ label: 'Title', from: c.title, to: input.title });
+  }
+  if (input.deadline && input.deadline !== c.deadline) {
+    changes.push({
+      label: 'Deadline',
+      from: c.deadline ? new Date(c.deadline).toLocaleString() : 'No deadline',
+      to: new Date(input.deadline).toLocaleString(),
+    });
+  }
+  let penaltyText = c.penalty_favor_text, points = c.points;
+  if (input.penaltyVaultItemId && input.penaltyVaultItemId !== c.penalty_vault_item_id) {
+    const item = state.vaultItems.find(v => v.id === input.penaltyVaultItemId);
+    if (item) {
+      changes.push({ label: 'Stakes', from: c.penalty_favor_text, to: item.label });
+      penaltyText = item.label;
+      points = DIFF_STAKES[item.weight] || c.points;
+    }
+  }
+  const pendingEdit = {
+    changes, title: input.title || c.title, deadline: input.deadline || c.deadline,
+    penaltyId: input.penaltyVaultItemId || c.penalty_vault_item_id, penaltyText, points,
+  };
   const { data, error } = await supabase.from('contracts')
-    .update({ status: 'pending_edit', pending_edit_title: newTitle }).eq('id', contractId).select().single();
+    .update({ status: 'pending_edit', pending_edit: pendingEdit }).eq('id', contractId).select().single();
   if (error) throw error;
-  await logHistory(contractId, 'requested change', { newTitle });
+  await logHistory(contractId, 'requested change', { changes: changes.map(c => `${c.label}: ${c.from} -> ${c.to}`).join('; ') });
   patchLocalContract(data);
   return data;
 }
 export async function approveEdit(contractId) {
   const c = state.contracts.find(x => x.id === contractId);
-  const { data, error } = await supabase.from('contracts')
-    .update({ status: 'active', title: c.pending_edit_title || c.title, pending_edit_title: null }).eq('id', contractId).select().single();
+  const pe = c.pending_edit || {};
+  const { data, error } = await supabase.from('contracts').update({
+    status: 'active', title: pe.title || c.title, deadline: pe.deadline || c.deadline,
+    penalty_favor_text: pe.penaltyText || c.penalty_favor_text, penalty_vault_item_id: pe.penaltyId || c.penalty_vault_item_id,
+    points: pe.points || c.points, pending_edit: null,
+  }).eq('id', contractId).select().single();
   if (error) throw error;
   await logHistory(contractId, 'approved the change', {});
   patchLocalContract(data);
 }
 export async function rejectEdit(contractId) {
   const { data, error } = await supabase.from('contracts')
-    .update({ status: 'active', pending_edit_title: null }).eq('id', contractId).select().single();
+    .update({ status: 'active', pending_edit: null }).eq('id', contractId).select().single();
   if (error) throw error;
   await logHistory(contractId, 'rejected the change', {});
   patchLocalContract(data);
@@ -362,6 +395,7 @@ export async function markBreached(contractId) {
   if (!favErr) setState(st => ({ favors: [favor, ...st.favors] }));
 }
 export async function submitDispute(contractId, note) {
+  note = note.trim();
   const { data, error } = await supabase.from('contracts').update({ status: 'disputed', dispute_note: note, disputed_by: me() }).eq('id', contractId).select().single();
   if (error) throw error;
   await logHistory(contractId, 'disputed the call', { note });

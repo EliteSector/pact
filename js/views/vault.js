@@ -51,9 +51,14 @@ function vault(state) {
         <div style="font-family:var(--font-body);font-size:13px;color:var(--text-muted);max-width:220px">Add favors you're willing to owe so partners know what's at stake.</div>
       </div>` : items.map(fav => `
       <div class="card-flat" style="box-shadow:var(--shadow-hard)">
-        <div class="row-between">
+        <div class="row-between" style="position:relative">
           <div style="font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--ink)">${esc(fav.label)}</div>
-          <button class="link-btn" data-act="remove-favor" data-arg="${fav.id}" style="color:var(--red)">Delete</button>
+          <button class="link-btn" data-act="toggle-fav-menu" data-arg="${fav.id}" aria-label="More options" style="padding:0;width:28px">⋯</button>
+          ${state.ui.openFavMenuId === fav.id ? `
+            <div class="menu-popover" style="top:28px;right:0">
+              <button data-act="edit-favor" data-arg="${fav.id}">Edit</button>
+              <button class="danger" data-act="remove-favor" data-arg="${fav.id}">Delete</button>
+            </div>` : ''}
         </div>
         <div class="row" style="gap:8px;margin-top:10px">
           ${['low','med','high'].map(d => `<button class="chip chip-sm ${fav.weight === d ? 'active' : ''}" style="flex:1" data-act="set-weight" data-arg="${fav.id}:${d}">${d.toUpperCase()}</button>`).join('')}
@@ -76,7 +81,12 @@ export const screens = {
     redeem: (e, id) => redeemFavor(id),
     'toggle-info': () => setUi(ui => ({ showVaultDiffInfo: !ui.showVaultDiffInfo })),
     'set-weight': (e, arg) => { const [id, w] = arg.split(':'); updateVaultItem(id, { weight: w }); },
-    'remove-favor': (e, id) => removeVaultItem(id),
+    'toggle-fav-menu': (e, id) => setUi(ui => ({ openFavMenuId: ui.openFavMenuId === id ? null : id })),
+    'edit-favor': (e, id) => {
+      const fav = getState().vaultItems.find(v => v.id === id);
+      setUi({ isAddingFavor: true, editingFavorId: id, newFavorText: fav?.label || '', openFavMenuId: null });
+    },
+    'remove-favor': (e, id) => { setUi({ openFavMenuId: null }); removeVaultItem(id); },
     'start-add': () => setUi({ isAddingFavor: true, newFavorText: '', editingFavorId: null }),
     'cancel-add': () => setUi({ isAddingFavor: false, newFavorText: '', editingFavorId: null }),
     'confirm-add': async () => {

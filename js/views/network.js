@@ -31,7 +31,7 @@ function network(state) {
       <button class="chip ${sort === 'reliability' ? 'active' : ''}" style="flex:1;text-align:center" data-act="sort" data-arg="reliability">By Reliability</button>
       <button class="chip ${sort === 'points' ? 'active' : ''}" style="flex:1;text-align:center" data-act="sort" data-arg="points">By Points</button>
     </div>
-    <button class="btn btn-primary btn-block" data-act="go-invite" style="border-radius:var(--radius-pill)">+ Invite a Partner</button>
+    <button class="btn btn-primary btn-lg btn-block" data-act="go-invite">+ Invite a Partner</button>
   </div>
   <div class="tab-body">
     ${rows.length <= 1 ? `

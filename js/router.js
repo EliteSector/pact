@@ -45,8 +45,11 @@ export function bindActions(root, actions) {
   });
   root.querySelectorAll('[data-model]').forEach(el => {
     const path = el.getAttribute('data-model');
-    const evt = el.getAttribute('data-live') != null ? 'input' : 'change';
-    el.addEventListener(evt, e => {
+    // Stable id derived from the bound path (not the prototype's random per-render identity) —
+    // this is what lets restoreFocus() find the same field after the innerHTML replace a
+    // keystroke triggers, instead of the browser dropping focus/closing the keyboard.
+    if (!el.id) el.id = 'field-' + path.replace(/[^a-zA-Z0-9_-]/g, '_');
+    el.addEventListener('input', e => {
       const val = el.type === 'checkbox' ? el.checked : e.target.value;
       if (actions.__bind) actions.__bind(path, val, e);
       else setUiPath(path, val);
@@ -75,14 +78,16 @@ function render() {
 function captureFocus(root) {
   const el = root.querySelector(':focus');
   if (!el || !el.id) return null;
-  return { id: el.id, selStart: el.selectionStart, selEnd: el.selectionEnd };
+  let selStart = null, selEnd = null;
+  try { selStart = el.selectionStart; selEnd = el.selectionEnd; } catch (e) {}
+  return { id: el.id, selStart, selEnd };
 }
 function restoreFocus(root, info) {
   if (!info) return;
   const el = root.querySelector('#' + CSS.escape(info.id));
   if (!el) return;
   el.focus();
-  try { el.setSelectionRange(info.selStart, info.selEnd); } catch (e) {}
+  if (info.selStart != null) { try { el.setSelectionRange(info.selStart, info.selEnd); } catch (e) {} }
 }
 
 export function startRouter() {

@@ -87,6 +87,15 @@
 .field-input.err, .field-textarea.err{ border-color:var(--red); }
 .field-error{ font-family:var(--font-body); font-size:12px; color:var(--red); font-weight:700; }
 
+/* Diff-summary cards: one field change (from struck-through -> to highlighted), used by
+   Review Change Request, Counter Sent, and the Disputed "Ruling" card. */
+.diff-card{ background:var(--cream-card); border:var(--border-w) solid var(--ink); border-radius:var(--radius-lg); box-shadow:var(--shadow-hard); padding:16px; display:flex; flex-direction:column; gap:8px; }
+.diff-card-label{ font-family:var(--font-display); font-weight:700; font-size:11px; text-transform:uppercase; color:var(--text-muted); }
+.diff-card-from{ font-family:var(--font-display); font-weight:700; font-size:15px; color:var(--ink); text-decoration:line-through; opacity:.5; }
+.diff-card-to{ font-family:var(--font-display); font-weight:800; font-size:17px; color:var(--ink); background:var(--gold); align-self:flex-start; padding:2px 8px; border-radius:6px; }
+.diff-card-to.ruling{ background:var(--blue); }
+.change-chip{ font-family:var(--font-display); font-weight:700; font-size:11px; text-transform:uppercase; background:var(--cream-card); border:2px solid var(--ink); border-radius:var(--radius-pill); padding:4px 10px; }
+
 .pill-toggle{ display:flex; border:var(--border-w) solid var(--ink); border-radius:var(--radius-pill); overflow:hidden; }
 .pill-toggle button{ flex:1; padding:12px 0; border:none; cursor:pointer; font-family:var(--font-display); font-weight:800; font-size:14px; background:var(--cream-card); color:var(--ink); }
 .pill-toggle button.active{ background:var(--ink); color:var(--cream-card); }
@@ -122,7 +131,7 @@
 @keyframes obtSlideIn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-.bottom-nav{ display:flex; border-top:var(--border-w) solid var(--ink); background:var(--cream); padding:12px 0 calc(16px + var(--sab)); font-family:var(--font-display); flex:0 0 auto; }
+.bottom-nav{ position:fixed; left:0; right:0; bottom:0; z-index:30; display:flex; border-top:var(--border-w) solid var(--ink); background:var(--cream); padding:12px 0 calc(16px + var(--sab)); font-family:var(--font-display); }
 .bottom-nav button{ flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; background:none; border:none; cursor:pointer; font-weight:800; font-size:11px; color:var(--ink); opacity:.45; -webkit-tap-highlight-color:transparent; }
 .bottom-nav button.active{ opacity:1; }
 .bottom-nav-tile{ width:40px; height:40px; display:flex; align-items:center; justify-content:center; border:2px solid var(--ink); border-radius:10px; background:var(--cream-card); transition:background 150ms ease; }

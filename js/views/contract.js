@@ -4,9 +4,18 @@ import {
   submitDispute, upholdBreach, overturnToKept, cancelContract, approveEdit, rejectEdit, loadHistory, addVaultItem,
 } from '../store.js';
 import { bindActions } from '../router.js';
-import { esc, categoryLabel, CATEGORY_DEFS, DIFF_STAKES, STATUS_LABEL, STATUS_COLOR, fmtTimeUntil, fmtRelativeTime, avatarSrc } from '../util.js';
+import { esc, categoryLabel, CATEGORY_DEFS, DIFF_STAKES, STATUS_LABEL, STATUS_COLOR, fmtTimeUntil, fmtRelativeTime, avatarSrc, toDatetimeLocal } from '../util.js';
 
 function activeContract(state) { return state.contracts.find(c => c.id === state.activeContractId); }
+
+function diffCard(ch, rulingStyle) {
+  return `
+  <div class="diff-card">
+    <div class="diff-card-label">${esc(ch.label)}</div>
+    <div class="diff-card-from">${esc(ch.from)}</div>
+    <div class="diff-card-to${rulingStyle ? ' ruling' : ''}">${esc(ch.to)}</div>
+  </div>`;
+}
 
 // ---------- nc wizard ----------
 
@@ -239,10 +248,16 @@ function counter(state) {
 function counterSent(state) {
   const c = activeContract(state);
   const other = c ? partnerProfile(c.proposer_id === me() ? c.partner_id : c.proposer_id) : { name: 'They' };
+  const diff = state.ui.counterSentDiff || [];
+  const note = state.ui.counterSentNote || '';
   return `
-  <div class="center-screen">
+  <div class="center-screen" style="overflow-y:auto">
     <div style="font-family:var(--font-display);font-weight:800;font-size:28px;color:var(--ink)">Counter sent.</div>
     <div style="font-family:var(--font-body);font-size:14px;color:var(--text-muted)">Status: Pending Counter. ${esc(other.name)} will decide.</div>
+    <div style="display:flex;flex-direction:column;gap:12px;width:100%;text-align:left">
+      ${diff.map(ch => diffCard(ch)).join('')}
+      ${note ? `<div class="card-flat"><div class="diff-card-label">Note</div><div style="font-family:var(--font-body);font-size:13px;color:var(--ink);margin-top:4px">"${esc(note)}"</div></div>` : ''}
+    </div>
     <button class="btn btn-primary btn-lg btn-block" data-act="go-dashboard">Back to Dashboard</button>
   </div>`;
 }
@@ -265,11 +280,14 @@ function detail(state) {
       ${c.deadline ? `<div style="font-family:var(--font-body);font-size:13px;color:var(--text-muted);background:var(--cream-card);border:2px solid var(--ink);border-radius:var(--radius-md);padding:10px 14px">Time left: ${fmtTimeUntil(c.deadline)}</div>` : ''}
       <button class="btn btn-primary btn-lg btn-block" data-act="submit-proof">Submit Proof</button>`;
   } else if (c.status === 'pending_edit') {
+    const changes = (c.pending_edit && c.pending_edit.changes) || [];
+    const count = changes.length;
     body = `
       <div><div class="progress-bar-label">${esc(c.progress_label || '')}</div><div class="progress-bar-track"><div class="progress-bar-fill" style="width:${pct}%"></div></div></div>
-      <div class="card" style="background:var(--gold)">
-        <div style="font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--ink)">Change requested: "${esc(c.pending_edit_title)}"</div>
-        <div style="font-family:var(--font-body);font-size:13px;color:var(--ink);margin-top:4px">${c.pending_edit_requested_by === uid ? `Waiting on ${esc(other.name)} to approve before this takes effect.` : `Review this and approve or reject it.`}</div>
+      <div class="card" style="background:var(--gold);gap:10px;display:flex;flex-direction:column">
+        <div style="font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--ink)">${count} change${count === 1 ? '' : 's'} requested</div>
+        <div class="row" style="flex-wrap:wrap;gap:6px">${changes.map(ch => `<span class="change-chip">${esc(ch.label)}</span>`).join('')}</div>
+        <div style="font-family:var(--font-body);font-size:13px;color:var(--ink)">${c.pending_edit_requested_by === uid ? `Waiting on ${esc(other.name)} to approve before this takes effect.` : `Review this and approve or reject it.`}</div>
       </div>
       ${c.pending_edit_requested_by !== uid ? `<button class="btn btn-primary btn-lg btn-block" data-act="review-change">Review Change</button>` : ''}`;
   } else if (c.status === 'pending_confirm') {
@@ -303,7 +321,14 @@ function detail(state) {
     body = `
       <div class="card" style="background:var(--blue)">
         <div style="font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--ink)">Dispute under review.</div>
-        <div style="font-family:var(--font-body);font-size:13px;color:var(--ink)">${c.dispute_note ? esc(c.dispute_note) : ''}</div>
+        <div style="font-family:var(--font-body);font-size:13px;color:var(--ink)">${esc(other.name)} has 48 hours to respond to your dispute before the original ruling stands.</div>
+      </div>
+      <div class="diff-card">
+        <div class="diff-card-label">Ruling</div>
+        <div class="diff-card-from">Breached</div>
+        <div class="diff-card-to ruling">Disputed — pending review</div>
+        <div class="diff-card-label" style="margin-top:6px">Your explanation</div>
+        <div style="font-family:var(--font-body);font-size:13px;color:var(--ink)">"${esc(c.dispute_note || '')}"</div>
       </div>
       ${canJudge ? `<div class="row" style="gap:10px">
         <button class="btn btn-danger btn-lg" style="flex:1" data-act="uphold">Uphold Breach</button>
@@ -373,6 +398,8 @@ function dispute(state) {
 function reviewChange(state) {
   const c = activeContract(state);
   if (!c) return '';
+  const changes = (c.pending_edit && c.pending_edit.changes) || [];
+  const count = changes.length;
   return `
   <div class="screen-pad-top">
     <button class="back-btn" data-act="go-dashboard">← Back</button>
@@ -380,11 +407,9 @@ function reviewChange(state) {
       <div style="font-size:24px;font-weight:800;line-height:1.15;color:var(--ink);font-family:var(--font-display)">A change was requested</div>
       <div style="font-size:14px;color:var(--text-muted);margin-top:8px;font-family:var(--font-body)">Review the proposed change before it takes effect.</div>
     </div>
-    <div class="card">
-      <div><div style="font-family:var(--font-display);font-weight:700;font-size:11px;text-transform:uppercase;color:var(--text-muted)">Current</div>
-        <div style="font-family:var(--font-display);font-weight:800;font-size:17px;color:var(--ink);text-decoration:line-through;opacity:.55">${esc(c.title)}</div></div>
-      <div style="margin-top:10px"><div style="font-family:var(--font-display);font-weight:700;font-size:11px;text-transform:uppercase;color:var(--text-muted)">Proposed</div>
-        <div style="font-family:var(--font-display);font-weight:800;font-size:19px;color:var(--ink)">${esc(c.pending_edit_title)}</div></div>
+    <div class="diff-card-label">${count} field${count === 1 ? '' : 's'} changed</div>
+    <div class="list-gap">
+      ${changes.map(ch => diffCard(ch)).join('')}
     </div>
     <button class="btn btn-success btn-lg btn-block" data-act="approve">Approve Change</button>
     <button class="btn btn-secondary btn-lg btn-block" data-act="reject">Reject Change</button>
@@ -462,7 +487,10 @@ function ncActions() {
       setUi({ busy: true });
       try {
         if (ncState.isEditing) {
-          await updateContractEdit(st.activeContractId, ncState.title);
+          const deadlineIso = ncState.deadline ? new Date(ncState.deadline).toISOString() : '';
+          await updateContractEdit(st.activeContractId, {
+            title: ncState.title, deadline: deadlineIso, penaltyVaultItemId: ncState.penaltyId,
+          });
         } else {
           const items = st.vaultItems;
           const penalty = items.find(v => v.id === ncState.penaltyId) || items[0];
@@ -472,7 +500,7 @@ function ncActions() {
           const deadlineIso = ncState.deadline ? new Date(ncState.deadline).toISOString() : null;
           const c = await createContract({
             partnerId: ncState.partnerId, title: ncState.title, categoryId: ncState.categoryId,
-            description, deadline: deadlineIso, penaltyText: penalty?.label || '', points: stakeWin,
+            description, deadline: deadlineIso, penaltyText: penalty?.label || '', penaltyVaultItemId: penalty?.id || null, points: stakeWin,
             progressMax: Number.isFinite(parsedCount) && parsedCount > 0 ? parsedCount : 1,
             progressLabel: Number.isFinite(parsedCount) && parsedCount > 0 ? `0/${parsedCount} complete` : '',
           });
@@ -506,12 +534,28 @@ export const screens = {
     'pick-counter-category': (e, id) => setUi({ counterCategoryId: id }),
     'send-counter': async () => {
       const st = getState();
+      const c = activeContract(st);
       const changes = {};
-      if (st.ui.counterWants.deadline) changes.deadline = st.ui.counterDeadline === 'Custom' ? st.ui.counterDeadlineCustom : st.ui.counterDeadline;
-      if (st.ui.counterWants.details) changes.details = st.ui.counterDetails;
-      if (st.ui.counterWants.stakes) changes.stakes = st.ui.counterStakes;
-      if (st.ui.counterWants.category) changes.category = st.ui.counterCategoryId;
+      const diff = [];
+      if (st.ui.counterWants.deadline) {
+        const to = st.ui.counterDeadline === 'Custom' ? st.ui.counterDeadlineCustom : st.ui.counterDeadline;
+        changes.deadline = to;
+        diff.push({ label: 'Deadline', from: c.deadline ? new Date(c.deadline).toLocaleString() : 'No deadline', to: to || '(unspecified)' });
+      }
+      if (st.ui.counterWants.details) {
+        changes.details = st.ui.counterDetails;
+        diff.push({ label: 'Requirements', from: c.description || '(none)', to: st.ui.counterDetails || '(unspecified)' });
+      }
+      if (st.ui.counterWants.stakes) {
+        changes.stakes = st.ui.counterStakes;
+        diff.push({ label: 'Stakes', from: c.penalty_favor_text, to: st.ui.counterStakes || '(unspecified)' });
+      }
+      if (st.ui.counterWants.category) {
+        changes.category = st.ui.counterCategoryId;
+        diff.push({ label: 'Category', from: categoryLabel(c.category), to: categoryLabel(st.ui.counterCategoryId) });
+      }
       if (st.ui.counterNote) changes.note = st.ui.counterNote;
+      setUi({ counterSentDiff: diff, counterSentNote: st.ui.counterNote });
       await sendCounter(st.activeContractId, changes);
       go('counterSent');
     },
@@ -520,7 +564,14 @@ export const screens = {
   detail: { render: detail, mount: (root, state) => bindActions(root, {
     'go-dashboard': () => go('dashboard'),
     'toggle-menu': () => setUi(ui => ({ detailMenuOpen: !ui.detailMenuOpen })),
-    'edit-terms': () => { const c = activeContract(state); setUi(ui => ({ detailMenuOpen: false, nc: { ...ui.nc, step: 2, title: c.title, isEditing: true } })); go('nc'); },
+    'edit-terms': () => {
+      const c = activeContract(state);
+      setUi(ui => ({ detailMenuOpen: false, nc: {
+        ...ui.nc, step: 2, title: c.title, deadline: toDatetimeLocal(c.deadline),
+        penaltyId: c.penalty_vault_item_id || ui.nc.penaltyId, isEditing: true,
+      } }));
+      go('nc');
+    },
     cancel: () => { setUi({ detailMenuOpen: false }); go('cancelConfirm'); },
     'submit-proof': () => submitProof(state.activeContractId),
     'review-change': () => go('reviewChange'),

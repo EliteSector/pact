@@ -45,6 +45,7 @@ function dashboard(state) {
   const banner = pendingReview(state);
   const rest = state.contracts.filter(c => c.id !== banner?.id && c.status !== 'proposed' && !(c.status === 'countered' && c.proposer_id !== uid));
   const unread = state.notifications.filter(n => !n.read).length;
+  const isEmpty = rest.length === 0 && !banner;
 
   return `
   <div class="tab-header">
@@ -61,7 +62,7 @@ function dashboard(state) {
         </button>
       </div>
     </div>
-    <button class="btn btn-primary btn-lg btn-block" data-act="new-contract">+ Create New Contract</button>
+    ${!isEmpty ? `<button class="btn btn-primary btn-lg btn-block" data-act="new-contract">+ Create New Contract</button>` : ''}
     <div class="section-title">My Contracts</div>
   </div>
   <div class="tab-body">
@@ -71,11 +72,12 @@ function dashboard(state) {
         <div style="font-family:var(--font-display);font-weight:800;font-size:18px;color:var(--ink);margin-top:4px">${esc(partnerProfileSafe(banner.proposer_id === uid ? banner.partner_id : banner.proposer_id).name)} proposed: "${esc(banner.title)}"</div>
         <div style="font-family:var(--font-display);font-weight:700;font-size:14px;text-decoration:underline;margin-top:4px">Review terms →</div>
       </div>` : ''}
-    ${rest.length === 0 && !banner ? `
+    ${isEmpty ? `
       <div class="empty-state">
         <img src="assets/pk/icons/handshake.png" alt="" style="width:56px;height:56px">
         <div style="font-family:var(--font-display);font-weight:800;font-size:18px;color:var(--ink)">No contracts yet</div>
         <div style="font-family:var(--font-body);font-size:14px;color:var(--text-muted);max-width:240px">Make a promise, put some points on it, and it'll show up here.</div>
+        <button class="btn btn-primary btn-lg btn-block" style="margin-top:8px" data-act="new-contract">+ Create New Contract</button>
       </div>` : rest.map(c => contractCard(c, uid)).join('')}
   </div>`;
 }

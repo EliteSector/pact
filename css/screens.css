@@ -6,11 +6,12 @@ a{ color:var(--coral); }
 img{ max-width:100%; }
 
 #app{
-  min-height:100vh;
-  min-height:100dvh;
+  height:100vh;
+  height:100dvh;
   display:flex;
   flex-direction:column;
   background:var(--cream);
+  overflow:hidden;
 }
 
 .screen{
@@ -42,7 +43,8 @@ img{ max-width:100%; }
 
 /* main tab shell (dashboard/vault/network/profile) */
 .tab-header{ padding:calc(20px + var(--sat)) 20px 0; display:flex; flex-direction:column; gap:18px; flex:0 0 auto; }
-.tab-body{ flex:1; overflow-y:auto; padding:16px 20px 24px; display:flex; flex-direction:column; gap:16px; -webkit-overflow-scrolling:touch; }
+.tab-body{ flex:1; overflow-y:auto; padding:16px 20px calc(96px + var(--sab)); display:flex; flex-direction:column; gap:16px; -webkit-overflow-scrolling:touch; }
+.nav-safe-bottom{ padding-bottom:calc(96px + var(--sab)) !important; }
 
 .empty-state{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; padding:40px 12px; }
 .empty-state img, .empty-state svg{ opacity:.45; }

@@ -1,6 +1,6 @@
-import { getState, setUi, go, me, saveProfile, signOut, changePassword, deleteAccountRemote, markAllNotifsRead, markNotifRead } from '../store.js';
+import { getState, setUi, setUiPath, go, me, saveProfile, signOut, changePassword, deleteAccountRemote, markAllNotifsRead, markNotifRead } from '../store.js';
 import { bindActions } from '../router.js';
-import { esc, avatarSrc, passwordScore, fmtRelativeTime, AVATAR_CHOICES } from '../util.js';
+import { esc, avatarSrc, passwordScore, fmtRelativeTime } from '../util.js';
 import { subscribeToPush, unsubscribeFromPush } from '../push.js';
 
 const FAQ_ITEMS = [
@@ -13,7 +13,7 @@ const FAQ_ITEMS = [
 function profile(state) {
   const p = state.profile || {};
   return `
-  <div class="screen-pad-top">
+  <div class="screen-pad-top nav-safe-bottom">
     <div class="row" style="gap:14px">
       <img class="avatar avatar-lg" src="${avatarSrc(p.avatar_id)}" alt="">
       <div style="flex:1">
@@ -38,11 +38,6 @@ function profile(state) {
     </div>
     <label class="field"><span class="field-label">Display Name</span>
       <input class="field-input" data-model="name" value="${esc(state.ui.name || p.name || '')}" placeholder="e.g. Alex R."></label>
-    <div class="row" style="gap:12px">
-      ${AVATAR_CHOICES.map(a => `<div data-act="pick-avatar" data-arg="${a.id}" style="cursor:pointer;border-radius:50%;box-shadow:${(state.ui.avatarId || p.avatar_id) === a.id ? 'var(--shadow-hard)' : 'none'}">
-        <img src="${a.src}" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:${(state.ui.avatarId || p.avatar_id) === a.id ? '3px solid var(--coral)' : '3px solid var(--ink)'}"></div>`).join('')}
-    </div>
-    <button class="btn btn-secondary btn-md" data-act="save-profile">Save</button>
 
     <div class="uppercase-label" style="margin-top:4px">Notifications</div>
     <div class="list-gap-sm">
@@ -57,11 +52,14 @@ function profile(state) {
     <div class="list-gap-sm">
       <button class="row-between" data-act="go-changepw" style="background:var(--cream-card);border:var(--border-w) solid var(--ink);border-radius:var(--radius-md);padding:12px 14px;cursor:pointer;text-align:left">
         <span style="font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--ink)">Password</span>
-        <span style="font-family:var(--font-body);font-size:13px;color:var(--text-muted)">••••••••</span>
+        <span style="display:flex;align-items:center;gap:6px;font-family:var(--font-body);font-size:13px;color:var(--text-muted)">••••••••
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </span>
       </button>
     </div>
     <button class="row-between" data-act="go-help" style="background:var(--cream-card);border:var(--border-w) solid var(--ink);border-radius:var(--radius-md);padding:12px 14px;cursor:pointer;text-align:left">
       <span style="font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--ink)">Help &amp; Support</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
     </button>
     <div style="display:grid;justify-items:center;margin-top:8px">
       <button class="btn btn-danger btn-lg" data-act="sign-out">Sign Out</button>
@@ -216,8 +214,10 @@ function help(state) {
 
 export const screens = {
   profile: { render: profile, mount: (root) => bindActions(root, {
-    'pick-avatar': (e, id) => setUi({ avatarId: id }),
-    'save-profile': async () => { const st = getState(); await saveProfile({ name: (st.ui.name || st.profile?.name || '').trim(), avatar_id: st.ui.avatarId || st.profile?.avatar_id }); },
+    __bind: (path, val) => {
+      setUiPath(path, val);
+      if (path === 'name') saveProfile({ name: val.trim() });
+    },
     toggle: async (e, key) => {
       const st = getState();
       const next = !st.profile[key];
