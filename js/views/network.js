@@ -148,7 +148,7 @@ export const screens = {
       'go-network': () => go('network'),
       copy: async () => {
         const code = getState().ui.referralCode;
-        const url = `${location.origin}${location.pathname}#/redeem/${code}`;
+        const url = `${location.origin}${location.pathname}redeem/${code}`;
         const ok = await copyToClipboard(url);
         setUi({ inviteCopied: ok, copyFailed: !ok, inviteUrl: url });
       },

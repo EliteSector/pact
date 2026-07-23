@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pact</title>
+<script>
+  // GitHub Pages serves this for any real path it doesn't have a file for —
+  // used here so a shared invite link (…/pact/redeem/CODE) works two ways:
+  // installed apps intercept it as a Universal Link before this ever loads,
+  // and browsers land here and get redirected into the SPA's hash router.
+  var path = location.pathname.replace(/^\/pact\//, '');
+  location.replace('/pact/#/' + path + location.search);
+</script>
+</head>
+<body></body>
+</html>
