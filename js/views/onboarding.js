@@ -142,15 +142,15 @@ export const screens = {
       else await addVaultItem(text);
     },
     'quick-add': (e, label) => addVaultItem(label),
-    finish: () => go('onbTutorial', { ui: { ...getState().ui, obTutorial: { step: 1 } } }),
+    finish: () => go('notifPermission'),
   }) },
   onbTutorial: { render: onbTutorial, mount: (root) => {
     bindActions(root, {
-      skip: () => go('notifPermission'),
+      skip: () => go('onbProfile'),
       dot: (e, arg) => setUi(ui => ({ obTutorial: { step: Number(arg) } })),
       next: () => {
         const step = getState().ui.obTutorial.step;
-        if (step >= TUTORIAL_SLIDES.length) go('notifPermission');
+        if (step >= TUTORIAL_SLIDES.length) go('onbProfile');
         else setUi({ obTutorial: { step: step + 1 } });
       },
     });
@@ -163,7 +163,7 @@ export const screens = {
         touchX = null;
         if (Math.abs(dx) < 40) return;
         const step = getState().ui.obTutorial.step;
-        if (dx < 0) { step >= TUTORIAL_SLIDES.length ? go('notifPermission') : setUi({ obTutorial: { step: step + 1 } }); }
+        if (dx < 0) { step >= TUTORIAL_SLIDES.length ? go('onbProfile') : setUi({ obTutorial: { step: step + 1 } }); }
         else if (step > 1) setUi({ obTutorial: { step: step - 1 } });
       });
     }

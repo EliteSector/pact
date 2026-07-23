@@ -125,7 +125,7 @@ export const screens = {
       try {
         if (ea.mode === 'signup') {
           const { hasSession } = await signUp(ea.email, ea.password);
-          if (hasSession) go('onbProfile');
+          if (hasSession) go('onbTutorial', { ui: { ...getState().ui, obTutorial: { step: 1 } } });
           else { setUi({ pendingConfirmEmail: ea.email }); go('confirmEmailSent'); }
         } else {
           await signIn(ea.email, ea.password);

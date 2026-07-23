@@ -26,7 +26,7 @@ async function enterApp(session) {
   const ok = await loadAll().then(() => true).catch(() => false);
   if (!ok) { go('networkError'); return; }
   const st = getState();
-  if (!st.profile?.name) { go('onbProfile'); return; }
+  if (!st.profile?.name) { go('onbTutorial', { ui: { ...st.ui, obTutorial: { step: 1 } } }); return; }
   const hashDetail = location.hash.match(/^#\/detail\/([\w-]+)/);
   if (hashDetail && st.contracts.some(c => c.id === hashDetail[1])) {
     go('detail', { activeContractId: hashDetail[1] });
