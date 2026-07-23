@@ -1,6 +1,6 @@
 import { getState, setUi, go, me, loadReferralCode, redeemInviteCode, removeNetworkConnection, setNetworkBlocked } from '../store.js';
 import { bindActions } from '../router.js';
-import { esc, avatarSrc } from '../util.js';
+import { esc, avatarSrc, copyToClipboard } from '../util.js';
 
 function leaderboardRows(state) {
   const uid = me();
@@ -103,6 +103,11 @@ function invite(state) {
       <div class="uppercase-label">Your Referral Code</div>
       <div style="font-family:var(--font-mono);font-weight:800;font-size:28px;letter-spacing:.06em;color:var(--ink)">${esc(code)}</div>
       <button class="btn btn-primary btn-md btn-block" data-act="copy">${state.ui.inviteCopied ? 'Link Copied!' : 'Copy Invite Link'}</button>
+      ${state.ui.copyFailed ? `
+        <div style="width:100%;display:flex;flex-direction:column;gap:6px">
+          <div style="font-family:var(--font-body);font-size:12px;color:var(--text-muted)">Couldn't copy automatically — tap the link below and copy it manually.</div>
+          <input class="field-input" readonly value="${esc(state.ui.inviteUrl || '')}" onclick="this.select()" style="font-size:13px">
+        </div>` : ''}
     </div>
     <div class="uppercase-label" style="margin-top:4px">Your Network</div>
     ${state.network.filter(n => n.status === 'joined').length ? `
@@ -143,9 +148,9 @@ export const screens = {
       'go-network': () => go('network'),
       copy: async () => {
         const code = getState().ui.referralCode;
-        const url = `${location.origin}/#/redeem/${code}`;
-        try { await navigator.clipboard.writeText(url); } catch (e) {}
-        setUi({ inviteCopied: true });
+        const url = `${location.origin}${location.pathname}#/redeem/${code}`;
+        const ok = await copyToClipboard(url);
+        setUi({ inviteCopied: ok, copyFailed: !ok, inviteUrl: url });
       },
     });
     if (!getState().ui.referralCode) {
