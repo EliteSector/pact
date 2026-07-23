@@ -231,12 +231,6 @@ export async function removeVaultItem(id) {
   if (error) throw error;
   setState(st => ({ vaultItems: st.vaultItems.filter(v => v.id !== id) }));
 }
-export async function seedVaultItems(labels) {
-  const rows = labels.map(label => ({ user_id: me(), label, weight: 'med', source: 'preset' }));
-  const { data, error } = await supabase.from('vault_items').insert(rows).select();
-  if (error) throw error;
-  setState(st => ({ vaultItems: [...st.vaultItems, ...(data || [])] }));
-}
 
 // ---------- network / invites ----------
 

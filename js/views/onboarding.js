@@ -1,4 +1,4 @@
-import { getState, setUi, go, saveProfile, seedVaultItems, addVaultItem, removeVaultItem, updateVaultItem } from '../store.js';
+import { getState, setUi, go, saveProfile, addVaultItem, removeVaultItem, updateVaultItem } from '../store.js';
 import { bindActions } from '../router.js';
 import { esc, AVATAR_CHOICES } from '../util.js';
 import { subscribeToPush } from '../push.js';
@@ -32,46 +32,51 @@ function onbProfile(state) {
 
 function onbVault(state) {
   const vault = state.vaultItems;
+  const suggestions = PRESET_FAVORS.other.filter(l => !vault.some(v => v.label === l));
   return `
-  <div class="screen-pad-top" style="padding-bottom:24px">
-    <div style="font-family:var(--font-display);font-weight:800;font-size:24px;color:var(--ink)">What favors are you willing to owe?</div>
-    <div class="row">
-      <div style="font-family:var(--font-body);font-size:14px;color:var(--text-muted)">Create a few. You'll be held to these.</div>
-      <button class="link-btn" data-act="toggle-info" aria-label="What do Low/Med/High mean?" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--ink);background:var(--cream-card);padding:0;font-weight:800">i</button>
+  <div style="flex:1;min-height:0;display:flex;flex-direction:column">
+    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:14px;padding:calc(24px + var(--sat)) 20px 0">
+      <div style="font-family:var(--font-display);font-weight:800;font-size:24px;color:var(--ink)">What favors are you willing to owe?</div>
+      <div class="row">
+        <div style="font-family:var(--font-body);font-size:14px;color:var(--text-muted)">Create a few. You'll be held to these.</div>
+        <button class="link-btn" data-act="toggle-info" aria-label="What do Low/Med/High mean?" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--ink);background:var(--cream-card);padding:0;font-weight:800">i</button>
+      </div>
+      ${state.ui.showDiffInfo ? `
+        <div style="background:var(--gold);border:2px solid var(--ink);border-radius:var(--radius-md);padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+          <div><b>Low</b> — Low-effort favor. Fewer points at stake.</div>
+          <div><b>Med</b> — A real ask, moderate stakes.</div>
+          <div><b>High</b> — A big favor. Higher points on success, steeper penalty if breached.</div>
+        </div>` : ''}
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        ${suggestions.map(l => `<button class="chip chip-sm" data-act="quick-add" data-arg="${esc(l)}"><span style="font-weight:800">+</span> ${esc(l)}</button>`).join('')}
+      </div>
+      ${vault.map(fav => `
+        <div class="card-flat" style="box-shadow:var(--shadow-hard)">
+          <div class="row-between" style="position:relative">
+            <div style="font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--ink)">${esc(fav.label)}</div>
+            <button class="link-btn" data-act="toggle-fav-menu" data-arg="${fav.id}" aria-label="More options" style="padding:0;width:28px">⋯</button>
+            ${state.ui.openFavMenuId === fav.id ? `
+              <div class="menu-popover" style="top:28px;right:0">
+                <button data-act="edit-favor" data-arg="${fav.id}">Edit</button>
+                <button class="danger" data-act="remove-favor" data-arg="${fav.id}">Delete</button>
+              </div>` : ''}
+          </div>
+          <div class="row" style="gap:8px;margin-top:10px">
+            ${['low','med','high'].map(d => `<button class="chip chip-sm ${fav.weight === d ? 'active' : ''}" style="flex:1" data-act="set-weight" data-arg="${fav.id}:${d}">${d.toUpperCase()}</button>`).join('')}
+          </div>
+        </div>`).join('')}
+      ${state.ui.isAddingFavor ? `
+        <div class="card-flat">
+          <input class="field-input" data-model="newFavorText" data-live value="${esc(state.ui.newFavorText)}" placeholder="e.g. Wash the car">
+          <div class="row" style="gap:10px;margin-top:10px">
+            <button class="btn btn-secondary btn-sm" style="flex:1" data-act="cancel-add">Cancel</button>
+            <button class="btn btn-primary btn-sm" style="flex:1" data-act="confirm-add">Add Favor</button>
+          </div>
+        </div>` : `<button class="btn btn-secondary btn-lg btn-block" data-act="start-add">+ Create Your Own Favor</button>`}
     </div>
-    ${state.ui.showDiffInfo ? `
-      <div style="background:var(--gold);border:2px solid var(--ink);border-radius:var(--radius-md);padding:12px 14px;display:flex;flex-direction:column;gap:8px">
-        <div><b>Low</b> — Low-effort favor. Fewer points at stake.</div>
-        <div><b>Med</b> — A real ask, moderate stakes.</div>
-        <div><b>High</b> — A big favor. Higher points on success, steeper penalty if breached.</div>
-      </div>` : ''}
-    ${vault.map(fav => `
-      <div class="card-flat" style="box-shadow:var(--shadow-hard)">
-        <div class="row-between" style="position:relative">
-          <div style="font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--ink)">${esc(fav.label)}</div>
-          <button class="link-btn" data-act="toggle-fav-menu" data-arg="${fav.id}" aria-label="More options" style="padding:0;width:28px">⋯</button>
-          ${state.ui.openFavMenuId === fav.id ? `
-            <div class="menu-popover" style="top:28px;right:0">
-              <button data-act="edit-favor" data-arg="${fav.id}">Edit</button>
-              <button class="danger" data-act="remove-favor" data-arg="${fav.id}">Delete</button>
-            </div>` : ''}
-        </div>
-        <div class="row" style="gap:8px;margin-top:10px">
-          ${['low','med','high'].map(d => `<button class="chip chip-sm ${fav.weight === d ? 'active' : ''}" style="flex:1" data-act="set-weight" data-arg="${fav.id}:${d}">${d.toUpperCase()}</button>`).join('')}
-        </div>
-      </div>`).join('')}
-    ${state.ui.isAddingFavor ? `
-      <div class="card-flat">
-        <input class="field-input" data-model="newFavorText" data-live value="${esc(state.ui.newFavorText)}" placeholder="e.g. Wash the car">
-        <div class="row" style="gap:10px;margin-top:10px">
-          <button class="btn btn-secondary btn-sm" style="flex:1" data-act="cancel-add">Cancel</button>
-          <button class="btn btn-primary btn-sm" style="flex:1" data-act="confirm-add">Add Favor</button>
-        </div>
-      </div>` : `<button class="btn btn-secondary btn-lg btn-block" data-act="start-add">+ Create Your Own Favor</button>`}
-    <div class="row" style="gap:8px;flex-wrap:wrap">
-      ${PRESET_FAVORS.other.filter(l => !vault.some(v => v.label === l)).map(l => `<button class="chip chip-sm" data-act="quick-add" data-arg="${esc(l)}">+ ${esc(l)}</button>`).join('')}
+    <div style="padding:16px 20px calc(20px + var(--sab))">
+      <button class="btn btn-primary btn-lg btn-block" data-act="finish">Finish Setup</button>
     </div>
-    <button class="btn btn-primary btn-lg btn-block" data-act="finish" style="margin-top:8px">Finish Setup</button>
   </div>`;
 }
 
@@ -117,7 +122,6 @@ export const screens = {
     'pick-avatar': (e, id) => setUi({ avatarId: id }),
     next: async () => {
       await saveProfile({ name: getState().ui.name.trim(), avatar_id: getState().ui.avatarId });
-      if (!getState().vaultItems.length) await seedVaultItems(PRESET_FAVORS.other);
       go('onbVault');
     },
   }) },
