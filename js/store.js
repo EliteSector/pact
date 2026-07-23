@@ -25,7 +25,7 @@ let state = {
     obTutorial: { step: 1 },
     showDiffInfo: false, showVaultDiffInfo: false,
     isAddingFavor: false, newFavorText: '', editingFavorId: null, openFavMenuId: null,
-    nc: { step: 1, partnerId: null, partnerEmail: '', title: '', categoryId: 'couple', deadline: '', penaltyId: null,
+    nc: { step: 1, partnerId: null, title: '', categoryId: 'couple', deadline: '', penaltyId: null,
       detailWants: { photo: false, checkin: false, witness: false, location: false }, detailsCount: '', detailsNote: '', details: '', isEditing: false },
     counterWants: { deadline: false, details: false, stakes: false, category: false },
     counterDeadline: '', counterDeadlineCustom: '', counterDetails: '', counterStakes: '', counterCategoryId: '', counterNote: '',

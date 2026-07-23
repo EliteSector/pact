@@ -85,7 +85,7 @@ function dashboard(state) {
 export const screens = {
   dashboard: { render: dashboard, mount: (root, state) => bindActions(root, {
     'open-notifs': () => go('notifCenter'),
-    'new-contract': () => setState(st => ({ screen: 'nc', ui: { ...st.ui, nc: { step: 1, partnerId: null, partnerEmail: '', title: '', categoryId: 'couple', deadline: '', penaltyId: st.vaultItems[0]?.id || null, detailWants: { photo: false, checkin: false, witness: false, location: false }, detailsCount: '', detailsNote: '', details: '', isEditing: false } } })),
+    'new-contract': () => setState(st => ({ screen: 'nc', ui: { ...st.ui, nc: { step: 1, partnerId: null, title: '', categoryId: 'couple', deadline: '', penaltyId: st.vaultItems[0]?.id || null, detailWants: { photo: false, checkin: false, witness: false, location: false }, detailsCount: '', detailsNote: '', details: '', isEditing: false } } })),
     review: () => { const c = pendingReview(state); if (c) go('review', { activeContractId: c.id }); },
     'open-contract': (e, id) => go('detail', { activeContractId: id }),
   }) },
