@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'pact-v2';
+const CACHE_VERSION = 'pact-v3';
 const APP_SHELL = [
   './',
   'index.html',
@@ -11,6 +11,7 @@ const APP_SHELL = [
   'js/store.js',
   'js/supabase-client.js',
   'js/push.js',
+  'js/vendor/supabase-js.umd.min.js',
   'icons/icon-180.png',
   'icons/icon-512.png',
 ];
