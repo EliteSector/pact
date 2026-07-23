@@ -25,10 +25,10 @@ function ncStep1(state) {
   return `
   <div style="font-family:var(--font-display);font-weight:800;font-size:24px;color:var(--ink)">Who's this between?</div>
   ${!partners.length ? `
-    <div class="empty-state" style="padding:24px 12px;background:var(--cream-card);border:var(--border-w) solid var(--ink);border-radius:var(--radius-lg)">
-      <div style="font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--ink)">No connections yet</div>
-      <div style="font-family:var(--font-body);font-size:13px;color:var(--text-muted)">Invite a partner first — contracts need a real linked account on the other end.</div>
-      <button class="btn btn-primary btn-md" data-act="go-invite">Invite a Partner</button>
+    <div class="empty-state" style="padding:24px 20px;background:var(--cream-card);border:var(--border-w) solid var(--ink);border-radius:var(--radius-lg);box-shadow:var(--shadow-hard)">
+      <div style="font-family:var(--font-display);font-weight:800;font-size:18px;color:var(--ink)">No connections yet</div>
+      <div style="font-family:var(--font-body);font-size:14px;color:var(--text-muted);max-width:260px">Invite a partner first — contracts need a real linked account on the other end.</div>
+      <button class="btn btn-primary btn-md btn-block" data-act="go-invite">Invite a Partner</button>
     </div>` : partners.map(p => {
       const prof = state.profilesById?.[p.contact_user_id] || {};
       return `<div class="row" data-act="pick-partner" data-arg="${p.contact_user_id}" style="cursor:pointer;background:var(--cream-card);border:var(--border-w) solid var(--ink);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:${nc.partnerId === p.contact_user_id ? 'var(--shadow-hard)' : 'none'}">

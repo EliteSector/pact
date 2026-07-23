@@ -51,7 +51,7 @@ function onbVault(state) {
         ${suggestions.map(l => `<button class="chip chip-sm" data-act="quick-add" data-arg="${esc(l)}"><span style="font-weight:800">+</span> ${esc(l)}</button>`).join('')}
       </div>
       ${vault.map(fav => `
-        <div class="card-flat" style="box-shadow:var(--shadow-hard)">
+        <div class="card-flat" style="animation:favorCardIn .3s var(--ease-snap,ease-out) backwards;box-shadow:var(--shadow-hard)">
           <div class="row-between" style="position:relative">
             <div style="font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--ink)">${esc(fav.label)}</div>
             <button class="link-btn" data-act="toggle-fav-menu" data-arg="${fav.id}" aria-label="More options" style="padding:0;width:28px">⋯</button>

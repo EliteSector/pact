@@ -129,6 +129,7 @@
 
 @keyframes stampIn{0%{transform:scale(1.6) rotate(-8deg);opacity:0}70%{transform:scale(0.95) rotate(-3deg);opacity:1}100%{transform:scale(1) rotate(-3deg);opacity:1}}
 @keyframes obtSlideIn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
+@keyframes favorCardIn{from{opacity:0;transform:translateY(-8px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 .bottom-nav{ position:fixed; left:0; right:0; bottom:0; z-index:30; display:flex; border-top:var(--border-w) solid var(--ink); background:var(--cream); padding:12px 0 calc(16px + var(--sab)); font-family:var(--font-display); }
