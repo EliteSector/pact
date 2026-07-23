@@ -1,4 +1,4 @@
-import { getState, setUi, go, saveProfile, addVaultItem, removeVaultItem, updateVaultItem } from '../store.js';
+import { getState, setUi, go, saveProfile, addVaultItem, removeVaultItem, updateVaultItem, redeemPendingReferral } from '../store.js';
 import { bindActions } from '../router.js';
 import { esc, AVATAR_CHOICES } from '../util.js';
 import { subscribeToPush } from '../push.js';
@@ -173,7 +173,7 @@ export const screens = {
     }
   } },
   notifPermission: { render: notifPermission, mount: (root) => bindActions(root, {
-    enable: async () => { try { await subscribeToPush(); } catch (e) {} go('dashboard'); },
-    skip: () => go('dashboard'),
+    enable: async () => { try { await subscribeToPush(); } catch (e) {} await redeemPendingReferral(); go('dashboard'); },
+    skip: async () => { await redeemPendingReferral(); go('dashboard'); },
   }) },
 };

@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'pact-v3';
+const CACHE_VERSION = 'pact-v4';
 const APP_SHELL = [
   './',
   'index.html',

@@ -242,8 +242,17 @@ export async function redeemInviteCode(code) {
   const { data: invite, error } = await supabase.from('invite_codes').select('*').eq('code', code.toUpperCase()).is('redeemed_by', null).maybeSingle();
   if (error) throw error;
   if (!invite) throw new Error('That code is invalid or already used.');
+  if (invite.inviter_id === me()) throw new Error("That's your own code.");
   await supabase.from('invite_codes').update({ redeemed_by: me(), redeemed_at: new Date().toISOString() }).eq('code', invite.code);
   await addNetworkConnection(invite.inviter_id, null, null, 'joined');
+}
+// Set by main.js when the app loads on a …/#/redeem/CODE link, before auth/onboarding
+// has necessarily finished — redeemed once we know who "me()" actually is.
+export async function redeemPendingReferral() {
+  const code = sessionStorage.getItem('pact_pending_referral');
+  if (!code) return;
+  sessionStorage.removeItem('pact_pending_referral');
+  try { await redeemInviteCode(code); } catch (e) { console.warn('Referral link redeem failed:', e.message); }
 }
 export async function addNetworkConnection(contactUserId, name, email, status = 'pending') {
   const { data, error } = await supabase.from('network_connections')

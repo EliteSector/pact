@@ -1,7 +1,16 @@
 import { supabase } from './supabase-client.js';
-import { setState, getState, go, loadAll } from './store.js';
+import { setState, getState, go, loadAll, redeemPendingReferral } from './store.js';
 import { registerScreens, startRouter } from './router.js';
 import { registerServiceWorker } from './push.js';
+
+// Capture a referral deep link (…/#/redeem/CODE) before anything else consumes the
+// hash — works whether the tapper is already logged in, mid-onboarding, or hasn't
+// signed up yet. Actually redeeming it happens later, once we know who "me()" is.
+const redeemMatch = location.hash.match(/^#\/redeem\/([A-Za-z0-9]+)/i);
+if (redeemMatch) {
+  sessionStorage.setItem('pact_pending_referral', redeemMatch[1].toUpperCase());
+  history.replaceState(null, '', location.pathname + location.search);
+}
 
 import { screens as authScreens } from './views/auth.js';
 import { screens as onboardingScreens } from './views/onboarding.js';
@@ -39,6 +48,7 @@ async function enterApp(session) {
   if (!ok) { go('networkError'); return; }
   const st = getState();
   if (!st.profile?.name) { go('onbTutorial', { ui: { ...st.ui, obTutorial: { step: 1 } } }); return; }
+  await redeemPendingReferral();
   const hashDetail = location.hash.match(/^#\/detail\/([\w-]+)/);
   if (hashDetail && st.contracts.some(c => c.id === hashDetail[1])) {
     go('detail', { activeContractId: hashDetail[1] });
