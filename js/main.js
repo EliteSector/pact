@@ -12,6 +12,9 @@ import { screens as contractScreens } from './views/contract.js';
 import { screens as profileScreens } from './views/profile.js';
 import { screens as miscScreens } from './views/misc.js';
 
+// This module executing at all means the boot-shell timeout in index.html can stand down.
+if (window.__pactBootTimer) { clearTimeout(window.__pactBootTimer); window.__pactBootTimer = null; }
+
 registerScreens({
   ...authScreens, ...onboardingScreens, ...dashboardScreens, ...vaultScreens,
   ...networkScreens, ...contractScreens, ...profileScreens, ...miscScreens,
@@ -19,11 +22,20 @@ registerScreens({
 
 registerServiceWorker().catch(() => {});
 
+// Supabase calls reject on a network error but can hang indefinitely on a stalled
+// connection — race them against a timeout so boot always resolves to a screen.
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Timed out')), ms)),
+  ]);
+}
+
 const PRE_APP_SCREENS = new Set(['loading', 'splash', 'auth', 'emailAuth', 'forgotPassword', 'forgotSent', 'confirmEmailSent']);
 
 async function enterApp(session) {
   setState({ screen: 'loading', session });
-  const ok = await loadAll().then(() => true).catch(() => false);
+  const ok = await withTimeout(loadAll(), 12000).then(() => true).catch(() => false);
   if (!ok) { go('networkError'); return; }
   const st = getState();
   if (!st.profile?.name) { go('onbTutorial', { ui: { ...st.ui, obTutorial: { step: 1 } } }); return; }
@@ -40,7 +52,7 @@ async function enterApp(session) {
 async function boot() {
   setState({ screen: 'loading' });
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await withTimeout(supabase.auth.getSession(), 12000);
     if (session) await enterApp(session);
     else go('splash');
   } catch (e) {
